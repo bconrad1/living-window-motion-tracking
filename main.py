@@ -1,5 +1,31 @@
 import cv2
 
+
+def face_tracker():
+    faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+    video = cv2.VideoCapture(0)
+
+    while True:
+        check, color_frame = video.read()
+
+        gray = cv2.cvtColor(color_frame, cv2.COLOR_BGR2GRAY)
+
+        faces = faceCascade.detectMultiScale(
+            gray,
+            scaleFactor=1.2,
+            minNeighbors=5,
+            minSize=(20, 20)
+        )
+        for (x, y, w, h) in faces:
+            cv2.rectangle(color_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        cv2.imshow('Live', color_frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cleanup(video)
+
+
 def motion_tracker():
     first_frame = None
     video = cv2.VideoCapture(0)
@@ -34,8 +60,7 @@ def motion_tracker():
         if key == ord('q'):
             break
 
-    video.release()
-    cv2.destroyAllWindows()
+        cleanup(video)
 
 
 def show_windows(delta_frame, thresh_frame, color_frame):
@@ -43,9 +68,12 @@ def show_windows(delta_frame, thresh_frame, color_frame):
     cv2.imshow("Threshold Frame", thresh_frame)
     cv2.imshow("Color", color_frame)
 
+
 def cleanup(video):
     video.release()
     cv2.destroyAllWindows()
 
+
 if __name__ == '__main__':
-    motion_tracker()
+    # motion_tracker()
+    face_tracker()
