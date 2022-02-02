@@ -1,13 +1,19 @@
 import cv2
+import numpy as np
+
+from helpers import calculate_crop
 
 
 def face_tracker():
     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
     video = cv2.VideoCapture(0)
+    image = cv2.imread('stream.jpg')
+    width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
+    last_working_crop_start = 0
+    last_working_crop_end = width-1
 
     while True:
         check, color_frame = video.read()
-
         gray = cv2.cvtColor(color_frame, cv2.COLOR_BGR2GRAY)
 
         faces = faceCascade.detectMultiScale(
@@ -16,11 +22,19 @@ def face_tracker():
             minNeighbors=5,
             minSize=(20, 20)
         )
+
         for (x, y, w, h) in faces:
+            crop_start, crop_end = calculate_crop(x)
+            if crop_start > 0: last_working_crop_start = crop_start
+            if crop_end < width: last_working_crop_end = crop_end
+
             cv2.rectangle(color_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
+        crop = image[0:400, last_working_crop_start:last_working_crop_end]
+
         cv2.imshow('Live', color_frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.imshow('Image', crop)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
     cleanup(video)
@@ -56,7 +70,7 @@ def motion_tracker():
 
         show_windows(delta_frame, thresh_frame, color_frame)
 
-        key = cv2.waitKqey(1)
+        key = cv2.waitKey(1)
         if key == ord('q'):
             break
 
